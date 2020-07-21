@@ -1,0 +1,27 @@
+.modal--alarm {
+  display: none;
+}
+
+.modal--basket {
+  display: none;
+}
+
+.modal {
+  position: relative;
+}
+
+.modal__wrapper {
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: calc(100% - 16px);
+  padding: 30px 16px;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  z-index: 10;
+
+  @media (min-width: 720px) {
+    width: 530px;
+  }
+}
