@@ -1,0 +1,24 @@
+.copyright {
+  padding-top: 16px;
+  border-top: 2px solid #d2d2d233;
+}
+
+.copyright__link {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  font-size: 18px;
+  color: #ffffff;
+}
+
+.copyright__text {
+  padding-right: 16px;
+}
+
+@media (min-width: 720px) {
+  .copyright {
+    padding-top: 0;
+    border: 0;
+  }
+}

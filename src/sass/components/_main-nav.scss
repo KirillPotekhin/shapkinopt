@@ -1,8 +1,6 @@
 .main-nav {
   display: flex;
   justify-content: space-between;
-  font-size: 14px;
-  line-height: 1.2;
 }
 
 .main-nav__wrapper {
@@ -11,9 +9,30 @@
 }
 
 .main-nav__logo {
-  padding: 22px 16px;
+  padding: 8px 8px 8px 0px;
 }
 
-.main-nav__meatball {
-  padding: 0 8px;
+.main-nav__logo-wrapper {
+  display: flex;
+  line-height: 0;
+}
+
+.main-nav__feedback {
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+  .main-nav__logo-img {
+    width: 130px;
+    height: 18px;
+    padding: 16px 16px 16px 0px;
+  }
+}
+
+@media (min-width: 1150px) {
+  .main-nav__logo-img {
+    width: 168px;
+    height: 42px;
+  }
 }
