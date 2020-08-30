@@ -1,0 +1,68 @@
+.tabs__btn + .tabs__btn {
+  margin-left: 18px;
+}
+
+.tabs__btn {
+  position: relative;
+  opacity: .5;
+  font-weight: 600;
+  text-decoration: none;
+  color: #000000;
+  white-space: nowrap;
+  
+  &:before {
+    content: "";
+    position: absolute;
+    bottom: -9px;
+    left: 50%;
+    border-radius: 4px;
+    transform: translateX(-50%);
+    transition: 0.3s all ease;
+    border: 0 solid #212121;
+    opacity: .75;
+  }
+
+  &:hover {
+    opacity: 1;
+
+    &:before {
+      border-width: 4px;
+      opacity: .75;
+      transition: 0.3s all ease;
+    }
+  }
+
+  &--active {
+    opacity: 1;
+
+    &:before {
+      width: 95%;
+      border-width: 4px;
+      transition: 0.3s all ease;
+    }
+  }
+}
+
+@media (min-width: 375px) {
+  .tabs__btn + .tabs__btn {
+    margin-left: 24px;
+  }
+}
+
+@media (min-width: 960px) {
+  .tabs__btn + .tabs__btn {
+    margin-left: 24px;
+  }
+
+  .tabs__btn {
+    &:before {
+      bottom: -14px;
+    }
+  }
+}
+
+@media (min-width: 1150px) {
+  .tabs__btn + .tabs__btn {
+    margin-left: 34px;
+  }
+}

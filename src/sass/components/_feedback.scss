@@ -1,13 +1,61 @@
 .feedback {
-  margin-top: 24px;
+  padding-top: 24px;
+  padding-bottom: 70px;
+  background: #212121;
+  color: #ffffff;
+  border-bottom: 1px solid #d2d2d233;
 
   .feedback__title {
     margin: 0;
     font-size: 20px;
     font-weight: 600;
   }
+}
+
+@media (min-width: 720px) {
+  .feedback {
+    padding-top: 40px;
+    padding-bottom: 95px;
+  }
+
+  .feedback__form-wrapper {
+    display: flex;
+    justify-content: space-between;
+  }
 
   .feedback__form {
+    width: 50%;
+  }
+
+  .feedback__form-background {
+    width: 50%;
+    margin-left: 16px;
     margin-top: 24px;
+    border-radius: 16px;
+    background: url(../img/slide3.jpg);
+    background-position: 50% 50%;
+    background-size: cover;
+  }
+}
+
+@media (min-width: 768px) {
+  .feedback {
+    padding-top: 42px;
+  }
+
+  .feedback__form-background {
+    margin-top: 35px;
+  }
+}
+
+@media (min-width: 960px) {
+  .feedback__form-background {
+    margin-left: 24px;
+  }
+}
+
+@media (min-width: 1150px) {
+  .feedback__form-background {
+    margin-left: 34px;
   }
 }

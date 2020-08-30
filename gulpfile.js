@@ -6,6 +6,7 @@
 var settings = {
 	clean: true,
 	scripts: true,
+	php: true,
 	polyfills: true,
 	styles: true,
 	svgs: true,
@@ -26,6 +27,10 @@ var paths = {
 		input: 'src/js/*',
 		polyfills: '.polyfill.js',
 		output: 'dist/js/'
+	},
+	php: {
+		input: 'src/php/*',
+		output: 'dist/php/'
 	},
 	styles: {
 		input: 'src/sass/**/*.{scss,sass}',
@@ -243,6 +248,14 @@ var buildImages = function (done) {
 		.pipe(dest(paths.images.output));
 };
 
+var buildPhp = function (done) {
+
+	if (!settings.php) return done();
+
+	return src(paths.php.input)
+		.pipe(dest(paths.php.output));
+};
+
 // Copy static files into output folder
 var copyFiles = function (done) {
 
@@ -298,6 +311,7 @@ exports.default = series(
 	parallel(
 		buildScripts,
 		lintScripts,
+		buildPhp,
 		buildStyles,
 		buildSVGs,
 		buildImages,

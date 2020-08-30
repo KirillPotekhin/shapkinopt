@@ -1,335 +1,642 @@
 "use strict";
 
-//forEach в ie11
-if ('NodeList' in window && !NodeList.prototype.forEach) {
-  console.info('polyfill for IE11');
-  NodeList.prototype.forEach = function (callback, thisArg) {
-    thisArg = thisArg || window;
-    for (var i = 0; i < this.length; i++) {
-      callback.call(thisArg, this[i], i, this);
-    }
-  };
+const feedbackBtn = document.querySelector(`.main-nav__feedback`);
+const scrollToFeedback = () => {
+  const feedbackOffsetHeight = document.querySelector(`.feedback`);
+  feedbackOffsetHeight.scrollIntoView({
+    block: `start`,
+    behavior: `smooth`,
+  });
 }
+feedbackBtn.addEventListener('click', scrollToFeedback);
 
-//.remove() ie11
-if (!('remove' in Element.prototype)) {
-  Element.prototype.remove = function() {
-      if (this.parentNode) {
-          this.parentNode.removeChild(this);
-      }
-  };
-}
-
-//Array.from ie11
-if (!Array.from) {
-  Array.from = (function () {
-    var toStr = Object.prototype.toString;
-    var isCallable = function (fn) {
-      return typeof fn === 'function' || toStr.call(fn) === '[object Function]';
-    };
-    var toInteger = function (value) {
-      var number = Number(value);
-      if (isNaN(number)) { return 0; }
-      if (number === 0 || !isFinite(number)) { return number; }
-      return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
-    };
-    var maxSafeInteger = Math.pow(2, 53) - 1;
-    var toLength = function (value) {
-      var len = toInteger(value);
-      return Math.min(Math.max(len, 0), maxSafeInteger);
-    };
-
-    // The length property of the from method is 1.
-    return function from(arrayLike/*, mapFn, thisArg */) {
-      // 1. Let C be the this value.
-      var C = this;
-
-      // 2. Let items be ToObject(arrayLike).
-      var items = Object(arrayLike);
-
-      // 3. ReturnIfAbrupt(items).
-      if (arrayLike == null) {
-        throw new TypeError("Array.from requires an array-like object - not null or undefined");
-      }
-
-      // 4. If mapfn is undefined, then let mapping be false.
-      var mapFn = arguments.length > 1 ? arguments[1] : void undefined;
-      var T;
-      if (typeof mapFn !== 'undefined') {
-        // 5. else
-        // 5. a If IsCallable(mapfn) is false, throw a TypeError exception.
-        if (!isCallable(mapFn)) {
-          throw new TypeError('Array.from: when provided, the second argument must be a function');
-        }
-
-        // 5. b. If thisArg was supplied, let T be thisArg; else let T be undefined.
-        if (arguments.length > 2) {
-          T = arguments[2];
-        }
-      }
-
-      // 10. Let lenValue be Get(items, "length").
-      // 11. Let len be ToLength(lenValue).
-      var len = toLength(items.length);
-
-      // 13. If IsConstructor(C) is true, then
-      // 13. a. Let A be the result of calling the [[Construct]] internal method of C with an argument list containing the single item len.
-      // 14. a. Else, Let A be ArrayCreate(len).
-      var A = isCallable(C) ? Object(new C(len)) : new Array(len);
-
-      // 16. Let k be 0.
-      var k = 0;
-      // 17. Repeat, while k < len… (also steps a - h)
-      var kValue;
-      while (k < len) {
-        kValue = items[k];
-        if (mapFn) {
-          A[k] = typeof T === 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k);
-        } else {
-          A[k] = kValue;
-        }
-        k += 1;
-      }
-      // 18. Let putStatus be Put(A, "length", len, true).
-      A.length = len;
-      // 20. Return A.
-      return A;
-    };
-  }());
-}
-
-const basketLink = document.querySelector(`.basket__link`);
-const modal = document.querySelectorAll(`.modal`);
-const modalBasket = document.querySelector(`.modal--basket`);
-const modalAlarm = document.querySelector(`.modal--alarm`);
-const modalBasketClose = modalBasket.querySelector(`.basket-modal__exit`);
-const modalAlarmClose = modalAlarm.querySelector(`.alarm-modal__exit`);
-const modalOverlay = document.querySelector(`.overlay`);
-const deleteTotalButton = modalBasket.querySelector(`.basket-modal__total-delete`);
-const productWrapper = modalBasket.querySelector(`.basket-modal__products`);
-const orderButton = document.querySelectorAll(`.product-card__order`);
-
-// localStorage.clear();
-let basketProducts = !!localStorage.getItem(`basketProduct`) ? JSON.parse(localStorage.getItem(`basketProduct`)).filter((it) => it) : [
-  {
-    title: `ALCHEMY OF CRYSTALS STICKER PACK`,
-    priceOld: 99,
-    priceClick: 99,
-    id: 0,
-    img: `img/product.png`,
+const pageHeader = document.querySelector(`.page-header`);
+const pageHeaderHeight = pageHeader.offsetHeight;
+window.addEventListener(`scroll`, () => {
+  const feedbackOffsetHeight = document.querySelector(`.feedback`).offsetTop;
+  if (window.scrollY >= (feedbackOffsetHeight - pageHeaderHeight)) {
+    pageHeader.classList.add(`visually-hidden`);
+    return;
   }
+  pageHeader.classList.remove(`visually-hidden`);
+});
+
+const Specification = {
+  seasonFall: `fall`,
+  seasonWinter: `winter`,
+  seasonSummer: `summer`,
+  typeHat: `Шапка`,
+  typeBandage: `Повязка`,
+  typeSnood: `Снуд`,
+  typeScarf: `Шарф`,
+  typeKlondike: `Косынка`,
+  typeBandana: `Бандана`,
+  typePanama: `Панама`,
+  typeRubber: `Резинка-платок`,
+  typeSolokha: `Солоха`,
+  modelAlfa: `Альфа`,
+  modelApolon: `Аполон`,
+  modelBerlin: `Берлин`,
+  modelValencia: `Валенсия`,
+  modelVenera: `Венера`,
+  modelGera: `Гера`,
+  modelZevs: `Зевс`,
+  modelKapella: `Капелла`,
+  modelLapland: `Лапландия`,
+  modelLondon: `Лондон`,
+  modelMiami: `Майами`,
+  modelMars: `Марс`,
+  modelNika: `Ника`,
+  modelOlimpia: `Олимпия`,
+  modelOlimpia2side: `Олимпия 2х сторонняя`,
+  modelOlimpia2sideiy: `Олимпия 2х сторонний`,
+  modelOrion: `Орион`,
+  modelSafari: `Сафари`,
+  modelSelena: `Селена`,
+  modelSirius: `Сириус`,
+  size3840: `38-40`,
+  size4046: `40-46`,
+  size4244: `42-44`,
+  size4246: `42-46`,
+  size4448: `44-48`,
+  size4648: `46-48`,
+  size4850: `48-50`,
+  size4852: `48-52`,
+  size4854: `48-54`,
+  size5052: `50-52`,
+  size5053: `50-53`,
+  size5254: `52-54`,
+  size5258: `52-58`,
+  size5458: `54-58`,
+  size5658: `56-58`,
+  sizeM: `M`,
+  sizeS: `S`,
+  composition100a: `100% акрил`,
+  composition100h: `100% хлопок`,
+  composition30w70a: `30% шерсть, 70% акрил`,
+  composition50w50a: `50% шерсть, 50% акрил`,
+  composition60pe35v5s: `60% полиэстер, 35% вискоза, 5% спандекс`,
+  composition92pe8n: `92% полиэстер, 8% нейлон`,
+  composition95pe5e: `95% полиэстер, 5% эластан`,
+  composition95h5e: `95% хлопок, 5% эластан`,
+  composition96pe4e: `96% полиэстер, 4% эластан`,
+  composition97h3e: `97% хлопок, 3% эластан`,
+};
+
+const products = [
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelOlimpia,
+    type: Specification.typeHat,
+    sizeSmall: `${Specification.size4850} / ${Specification.size5052}`,
+    sizeHigh: `${Specification.size5254} / ${Specification.size5658}`,
+    composition: Specification.composition95pe5e,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: 600,
+    priceHigh: 700,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelOlimpia,
+    type: Specification.typeBandage,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeS} / ${Specification.sizeM}`,
+    composition: Specification.composition95pe5e,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 400,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelOlimpia,
+    type: Specification.typeSnood,
+    sizeSmall: `${Specification.sizeS}`,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition95pe5e,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: 600,
+    priceHigh: 700,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelOlimpia2side,
+    type: Specification.typeHat,
+    sizeSmall: `${Specification.size4850}`,
+    sizeHigh: `${Specification.size5254} / ${Specification.size5658}`,
+    composition: Specification.composition95pe5e,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: 650,
+    priceHigh: 750,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelOlimpia2sideiy,
+    type: Specification.typeSnood,
+    sizeSmall: `${Specification.sizeS}`,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition95pe5e,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: 650,
+    priceHigh: 750,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelOrion,
+    type: Specification.typeHat,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.size5254} / ${Specification.size5658}`,
+    composition: Specification.composition95pe5e,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: 600,
+    priceHigh: 700,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelOrion,
+    type: Specification.typeSnood,
+    sizeSmall: `${Specification.sizeS}`,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition95pe5e,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: 600,
+    priceHigh: 700,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelZevs,
+    type: Specification.typeHat,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeS} / ${Specification.sizeM}`,
+    composition: Specification.composition30w70a,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 900,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelZevs,
+    type: Specification.typeSnood,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition30w70a,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 900,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelKapella,
+    type: Specification.typeHat,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeS} / ${Specification.sizeM}`,
+    composition: Specification.composition30w70a,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 900,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelKapella,
+    type: Specification.typeScarf,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition30w70a,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 900,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelGera,
+    type: Specification.typeHat,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition100a,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 800,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelGera,
+    type: Specification.typeSnood,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition100a,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 800,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelNika,
+    type: Specification.typeBandage,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition96pe4e,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 580,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelSelena,
+    type: Specification.typeBandage,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition92pe8n,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 500,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelAlfa,
+    type: Specification.typeHat,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.size5258}`,
+    composition: Specification.composition60pe35v5s,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 900,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelAlfa,
+    type: Specification.typeBandage,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition60pe35v5s,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 550,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelAlfa,
+    type: Specification.typeSnood,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition60pe35v5s,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 1000,
+  },
+  {
+    season: Specification.seasonFall,
+    model: Specification.modelMars,
+    type: Specification.typeHat,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.size4448} / ${Specification.size5052}`,
+    composition: Specification.composition95h5e,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 600,
+  },
+  {
+    season: Specification.seasonSummer,
+    model: Specification.modelSafari,
+    type: Specification.typePanama,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.size4648} / ${Specification.size5052} / ${Specification.size5458}`,
+    composition: Specification.composition97h3e,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 750,
+  },
+  {
+    season: Specification.seasonSummer,
+    model: Specification.modelSafari,
+    type: Specification.typeHat,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.size4850} / ${Specification.size5254}`,
+    composition: Specification.composition100h,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 500,
+  },
+  {
+    season: Specification.seasonSummer,
+    model: Specification.modelMiami,
+    type: Specification.typeBandage,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.size5458}`,
+    composition: Specification.composition95pe5e,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 700,
+  },
+  {
+    season: Specification.seasonSummer,
+    model: Specification.modelMiami,
+    type: Specification.typeRubber,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition95pe5e,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 600,
+  },
+  {
+    season: Specification.seasonSummer,
+    model: Specification.modelSafari,
+    type: Specification.typeKlondike,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.size4246} / ${Specification.size4852} / ${Specification.size5458}`,
+    composition: Specification.composition100h,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 400,
+  },
+  {
+    season: Specification.seasonSummer,
+    model: Specification.modelSafari,
+    type: Specification.typeBandage,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.size4850} / ${Specification.size5254} / ${Specification.size5658}`,
+    composition: Specification.composition100h,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 400,
+  },
+  {
+    season: Specification.seasonSummer,
+    model: Specification.modelSafari,
+    type: Specification.typeSolokha,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition97h3e,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 400,
+  },
+  {
+    season: Specification.seasonSummer,
+    model: Specification.modelSafari,
+    type: Specification.typeBandana,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.size4854}`,
+    composition: Specification.composition97h3e,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 450,
+  },
+  {
+    season: Specification.seasonWinter,
+    model: Specification.modelLondon,
+    type: Specification.typeHat,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition50w50a,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 1400,
+  },
+  {
+    season: Specification.seasonWinter,
+    model: Specification.modelLondon,
+    type: Specification.typeSnood,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition50w50a,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 1900,
+  },
+  {
+    season: Specification.seasonWinter,
+    model: Specification.modelValencia,
+    type: Specification.typeHat,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition50w50a,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 1700,
+  },
+  {
+    season: Specification.seasonWinter,
+    model: Specification.modelLapland,
+    type: Specification.typeHat,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition50w50a,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 1600,
+  },
+  {
+    season: Specification.seasonWinter,
+    model: Specification.modelBerlin,
+    type: Specification.typeHat,
+    sizeSmall: ``,
+    sizeHigh: `${Specification.sizeM}`,
+    composition: Specification.composition50w50a,
+    color: `Актуальные расцветки уточняются при заказе`,
+    priceSmall: ``,
+    priceHigh: 1200,
+  },
 ];
 
-const renderProduct = () => {
-  const productAll = productWrapper.querySelectorAll(`.basket-modal__product`);
-  productAll.forEach((it) => {
-    it.remove();
+const randomInteger = (min, max) => {
+  let rand = min + Math.random() * (max + 1 - min);
+  return Math.floor(rand);         
+};
+
+const translit = (str) => {
+	str = str.toLowerCase().replace(/<.+>/, ' ').replace(/\s+/, ' ');
+	const c = {
+		'а':'a', 'б':'b', 'в':'v', 'г':'g', 'д':'d', 'е':'e', 'ё':'jo', 'ж':'zh', 'з':'z', 'и':'i', 'й':'j', 'к':'k', 'л':'l', 'м':'m', 'н':'n', 'о':'o', 'п':'p', 'р':'r', 'с':'s', 'т':'t', 'у':'u', 'ф':'f', 'х':'h', 'ц':'c', 'ч':'ch', 'ш':'sh', 'щ':'shch', 'ъ':'', 'ы':'y', 'ь':'', 'э':'e', 'ю':'ju', 'я':'ja', ' ':'-', ';':'', ':':'', ',':'', '—':'-', '–':'-', '.':'', '«':'', '»':'', '"':'', "'":'', '@':'',
+	}
+	let newStr = new String();
+	for (let i = 0; i < str.length; i++) {
+		let ch = str.charAt(i);
+		newStr += ch in c ? c[ch] : ch;
+	}
+	return newStr;
+};
+
+
+
+const createElements = (container, products) => {
+  const content = document.createElement('div');
+  products.forEach((product, index) => {
+
+    console.log(`key`, `${translit(product.model.replace(/\s/g, '-').toLowerCase())}-${translit(product.type.replace(/\s/g, '').toLowerCase())}`, index+1);
+
+    const template = `<article class="catalog__item ${index % 2 !== 0 ? `catalog__item--reverse catalog__item--reverse-color` : ``}">
+			<div class="container">
+				<div class="catalog__item-pictures">
+          <div class="catalog__item-picture">
+            <picture>
+              <source media="(min-width: 960px)" srcset="img/${translit(product.model.replace(/\s/g, '-').toLowerCase())}-${translit(product.type.replace(/\s/g, '').toLowerCase())}-1-1024.jpg">
+              <source media="(min-width: 720px)" srcset="img/${translit(product.model.replace(/\s/g, '-').toLowerCase())}-${translit(product.type.replace(/\s/g, '').toLowerCase())}-1-800.jpg">
+              <img class="catalog__item-img" width="288px" height="288px" alt="${product.model} ${product.type} 1" src="img/${translit(product.model.replace(/\s/g, '-').toLowerCase())}-${translit(product.type.replace(/\s/g, '').toLowerCase())}-1-600.jpg">
+            </picture>
+					</div>
+					<div class="catalog__item-picture">
+            <picture>
+              <source media="(min-width: 960px)" srcset="img/${translit(product.model.replace(/\s/g, '-').toLowerCase())}-${translit(product.type.replace(/\s/g, '').toLowerCase())}-2-1024.jpg">
+              <source media="(min-width: 720px)" srcset="img/${translit(product.model.replace(/\s/g, '-').toLowerCase())}-${translit(product.type.replace(/\s/g, '').toLowerCase())}-2-800.jpg">
+              <img class="catalog__item-img" width="288px" height="288px" alt="${product.model} ${product.type} 2" src="img/${translit(product.model.replace(/\s/g, '-').toLowerCase())}-${translit(product.type.replace(/\s/g, '').toLowerCase())}-2-600.jpg">
+            </picture>
+					</div>
+					<div class="catalog__item-picture">
+            <picture>
+              <source media="(min-width: 960px)" srcset="img/${translit(product.model.replace(/\s/g, '-').toLowerCase())}-${translit(product.type.replace(/\s/g, '').toLowerCase())}-3-1024.jpg">
+              <source media="(min-width: 720px)" srcset="img/${translit(product.model.replace(/\s/g, '-').toLowerCase())}-${translit(product.type.replace(/\s/g, '').toLowerCase())}-3-800.jpg">
+              <img class="catalog__item-img" width="288px" height="288px" alt="${product.model} ${product.type} 2" src="img/${translit(product.model.replace(/\s/g, '-').toLowerCase())}-${translit(product.type.replace(/\s/g, '').toLowerCase())}-3-600.jpg">
+            </picture>
+					</div>
+				</div>
+				<div class="catalog__item-description">
+					<table class="catalog__table">
+						<tr class="catalog__table-line">
+							<td class="catalog__table-cell catalog__table-cell--font">Модель</td>
+							<td class="catalog__table-cell">${product.model}</td>
+						</tr>
+						<tr class="catalog__table-line">
+							<td class="catalog__table-cell catalog__table-cell--font">Тип</td>
+							<td class="catalog__table-cell">${product.type}</td>
+						</tr>
+						<tr class="catalog__table-line">
+							<td class="catalog__table-cell catalog__table-cell--font">Размер</td>
+							<td class="catalog__table-cell">${product.sizeSmall !== `` ? `${product.sizeSmall} / ${product.sizeHigh}` : `${product.sizeHigh}`}</td>
+						</tr>
+						<tr class="catalog__table-line">
+							<td class="catalog__table-cell catalog__table-cell--font">Состав</td>
+							<td class="catalog__table-cell">${product.composition}</td>
+						</tr>
+						<tr class="catalog__table-line">
+							<td class="catalog__table-cell catalog__table-cell--font">Цвет</td>
+							<td class="catalog__table-cell">${product.color}</td>
+						</tr>
+						<tr class="catalog__table-line">
+							<td class="catalog__table-cell catalog__table-cell--font">Розничная цена</td>
+							<td class="catalog__table-cell">
+								<table>
+                  <tr class="catalog__table-line catalog__table-line--price">
+                    ${product.sizeSmall !== `` ? `<td class="catalog__table-cell catalog__table-cell--padding">${product.sizeSmall}</td>` : ``}
+										<td class="catalog__table-cell catalog__table-cell--padding">${product.sizeHigh}</td>
+									</tr>
+                  <tr class="catalog__table-line catalog__table-line--price">
+                    ${product.sizeSmall !== `` ? `<td class="catalog__table-cell">${product.priceSmall}Р</td>` : ``}												
+										<td class="catalog__table-cell">${product.priceHigh}Р</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+    </article>`;
+
+    content.insertAdjacentHTML(`beforeend`, template);
   });
-  for (const basketProduct of basketProducts) {
-    const priceValue = !!localStorage.getItem(`isStock`) ? basketProduct.priceOld : basketProduct.priceClick;
-    productWrapper.insertAdjacentHTML('beforeEnd', createProduct(basketProduct.title, priceValue, basketProduct.id, basketProduct.img));
-  }
-  onCalculateTotalPrice();
+
+  container.append(content);
 };
 
-const createProduct = (titleCard, priceValue, id, img) => {
-  return `<div class="basket-modal__product">
-    <img class="basket-modal__product-image" src="${img}" width="134" height="75" alt="product">
-    <div class="basket-modal__product-description">
-      <p class="basket-modal__product-title">${titleCard}</p>
-      <div class="basket-modal__description-wrapper">
-        <div class="basket-modal__price">
-          <span class="basket-modal__price-value">${priceValue}.0</span>
-          <span class="basket-modal__price-currency">руб.</span>
-        </div>
-        <a class="basket-modal__delete" href="#" data-id="${id}">
-          <span class="basket-modal__delete-item">Delete</span>
-        </a>
-      </div>
-    </div>
-  </div>`
-};
 
-const getOrderButtom = () => {
-  return orderButton.forEach((it, i) => {
-    const render = () => {
-      const titleCard = Array.from(document.querySelectorAll(`.product-card__title`))[i].textContent;
-      const price = Array.from(document.querySelectorAll(`.product-card__price--actual .product-card__price-value`))[i].textContent;
-      const priceOld = Array.from(document.querySelectorAll(`.product-card__price--old .product-card__price-value`))[i].textContent;
-      const priceValue = !!localStorage.getItem(`isStock`) ? priceOld : price;
-      const src = `http://picsum.photos/300/150?r=${Math.random()}`;
-      if (basketProducts.some((product) => product.title === titleCard)) {
-        alert(`Такой товар уже выбран`);
-      } else {
-        basketProducts.push({
-          title: titleCard,
-          priceOld: priceOld,
-          priceClick: price,
-          id: basketProducts.length,
-          img: src,
-        });
-        productWrapper.insertAdjacentHTML('beforeEnd', createProduct(titleCard, priceValue, i, src));
-      }
-    };
-    const action = () => {
-      render();
-      onCalculateTotalPrice();
-      onRecordLocalStorageArray(); 
-    };
-    it.addEventListener(`click`, action);
-  });
-};
 
-//Modal
-const onKeyEscDown = (evt) => {
-  if (evt.key === `Escape` || evt.key === `Esc`) {
-    onCloseModal();
-  }
-};
+const productsSeasons = [];
+const productsSeasonFall = products.slice().filter((it) => it.season === `fall`);
+const productsSeasonWinter = products.slice().filter((it) => it.season === `winter`);
+const productsSeasonSummer = products.slice().filter((it) => it.season === `summer`);
+productsSeasons.push(productsSeasonFall);
+productsSeasons.push(productsSeasonWinter);
+productsSeasons.push(productsSeasonSummer);
 
-const onClickOverlayCloseModal = (evt) => {
-  if (evt.target == modalOverlay) {
-    onCloseModal();
-  }
-};
+const tabs = document.querySelector(`.tabs`);
+const tabsButtons = tabs.querySelectorAll(`.tabs__btn`);
+const tabsContents = document.querySelectorAll(`.catalog__tabs-content`);
 
-const onOpenModal = (modal) => (evt) => {
-  onCloseModal();
-  modal.style.display = `block`;
-  modalOverlay.style.display = `block`;
-  document.addEventListener(`keydown`, onKeyEscDown);
-  document.addEventListener(`click`, onClickOverlayCloseModal);
-  if (modal == modalBasket) {
+Array.from(tabsContents).forEach((tabContent, index) => createElements(tabContent, productsSeasons[index]));
+
+tabsButtons.forEach((it, i) => {
+  it.addEventListener(`click`, (evt) => {
     evt.preventDefault();
-    onClickDeleteProduct();
-    onClickDeleteAllProduct();
-    console.log(basketProducts);
-  }
-};
-
-const onCloseModal = () => {
-  modalAlarm.style.display = `none`;
-  modalBasket.style.display = `none`;
-  modalOverlay.style.display = `none`;
-  document.removeEventListener(`keydown`, onKeyEscDown);
-  document.removeEventListener(`click`, onClickOverlayCloseModal);
-};
-
-const onClickButtonCloseModal = (evt) => {
-  evt.preventDefault();
-  onCloseModal();
-}
-//Корзина Modal
-basketLink.addEventListener(`click`, onOpenModal(modalBasket));
-modalBasketClose.addEventListener(`click`, onClickButtonCloseModal);
-
-//Окончание акции Modal
-modalAlarmClose.addEventListener(`click`, onClickButtonCloseModal);
-
-//Записываю массив с продуктами в localstorage
-const onRecordLocalStorageArray = () => {
-  localStorage.removeItem(`basketProduct`);
-  localStorage.setItem(`basketProduct`, JSON.stringify(basketProducts));
-};
-
-//Считает итоговую цену
-const onCalculateTotalPrice = () => {
-  const price = productWrapper.querySelectorAll(`.basket-modal__price-value`);
-  const total = Array.from(price);
-  const prices = [];
-  for (let i = 0; i < total.length; i++) {
-    prices.push(Number(total[i].textContent.replace(/ /g, ``)));
-  }
-  const totalPrice = prices.length ? prices.reduce((arr, atr) => arr + atr) : 0;
-  document.querySelector(`.basket-modal__total-value`).textContent = `${totalPrice}.0`;
-  document.querySelector(`.basket__price-value`).textContent = `${totalPrice}.0`;
-};
-
-//Функция удаления товара из корзины
-const onClickDeleteProduct = () => {
-  const productAll = productWrapper.querySelectorAll(`.basket-modal__product`);
-  const deleteButton = modalBasket.querySelectorAll(`.basket-modal__delete`);
-
-  deleteButton.forEach((it, i) => {
-    it.addEventListener(`click`, (evt) => {
-      evt.preventDefault();
-      productAll[i].remove();      
-      basketProducts = basketProducts.filter(product => {
-        return product.id.toString() !== it.dataset.id;
-      });
-      onRecordLocalStorageArray();
-      onCalculateTotalPrice();
-    });
-  });
-};
-
-//Функция удаления всех товаров из корзины
-const onClickDeleteAllProduct = () => {
-  const productAll = productWrapper.querySelectorAll(`.basket-modal__product`);
-
-  deleteTotalButton.addEventListener(`click`, (evt) => {
-    evt.preventDefault();
-    productAll.forEach((it) => {
-      it.remove();
-      onCalculateTotalPrice();
-    });
-    basketProducts.splice(0, basketProducts.length);
-    onRecordLocalStorageArray();
-  });
-};
-
-//Timer
-const alarmInfo = document.querySelector(`.product-card__alarm-info`);
-const timerTime = 15 * 60;
-const lsKey = `timerEnd`;
-const savedTime = parseInt(localStorage.getItem(lsKey));
-
-const castTimeFormat = (value) => {
-  return value < 10 ? `0${value}` : `${value}`;
-};
-
-const timerStart = (finishDate) => {
-  localStorage.setItem(lsKey, finishDate.getTime());
-
-  const timerId = setInterval(() => {
-    const seconds = parseInt((finishDate - new Date()) / 1000);
-    const alarmMinute = parseInt((finishDate - new Date()) / 1000 / 60);
-    const alarmSecond = parseInt(((finishDate - new Date()) - alarmMinute * 1000 * 60) / 1000);
-    alarmInfo.textContent = `Offer valid ${castTimeFormat(alarmMinute)} : ${castTimeFormat(alarmSecond)}`;
-    if (seconds <= 0) {
-      clearInterval(timerId);
-      onOpenModal(modalAlarm)();
-      discountNo();
-      localStorage.setItem(`isStock`, `false`);
-      renderProduct();
+    if (it.classList.contains(`tabs__btn--active`)) {
+      return;
     }
-  }, 100);
-}
 
-window.onload = () => {
-  const date = new Date();
-
-  //Чтобы таймер больше не запускался
-  savedTime ? date.setTime(savedTime) : date.setTime(date.getTime() + 1000 * timerTime);
-  !!localStorage.getItem(`isStock`) ? discountNo() : timerStart(date);
-
-  //Вставляет товары в корзину
-  renderProduct();
-  onCalculateTotalPrice();
-
-  getOrderButtom();
-};
-
-//Функция, которая при окончании таймера удаляет его из карточки, скрывает акционную цену и делает выравнивание 
-const discountNo = () => {
-  const actualPrice = document.querySelectorAll(`.product-card__price`);
-
-  if (!!document.querySelector(`.product-card__alarm`)) {
-    document.querySelector(`.product-card__alarm`).remove();
-    document.querySelector(`.product-card__wrapper-detail`).style.justifyContent = `flex-end`;
-    actualPrice.forEach((it) => {
-      it.classList.toggle(`product-card__price--actual`);
-      !it.classList.contains(`product-card__price--actual`) ? it.remove() : ``;
+    it.classList.add(`tabs__btn--active`);
+    const itemNotActive = Array.from(tabsButtons).filter((tab) => tab.id !== evt.target.id);
+    itemNotActive.forEach((it) => {
+      if (it.classList.contains(`tabs__btn--active`)) {
+        it.classList.remove(`tabs__btn--active`);
+      }
     });
-  }
-};
+
+    Array.from(tabsContents).forEach((it, index) => {
+      if ((i !== index) & (!it.classList.contains(`visually-hidden`))) {
+        it.classList.add(`visually-hidden`);
+      }
+
+      if ((i === index) & (it.classList.contains(`visually-hidden`))) {
+        it.classList.remove(`visually-hidden`);
+
+        // $('.catalog__item-pictures').slick('resize');
+
+        // const catalogItemPictures = it.querySelectorAll(`.catalog__item-pictures`);
+        // Array.from(catalogItemPictures).forEach((item) => {
+        //   const tabImg = item.querySelector(`.catalog__item-img`);
+        //   const widthSlickContainer = item.querySelector(`.slick-list`).offsetWidth;
+        //   tabImg.style.width = `${widthSlickContainer}px`;
+        //   tabImg.style.height = `auto`;
+          
+        //   const marginReset = item.querySelector(`.slick-track`);
+        //   marginReset.style.margin = 0;
+        // });
+        $(`.catalog__item-pictures`).slick(`reinit`);
+      }
+    });
+  });
+});
+
+// const rescueSizeImage = () => {
+//   const tabImgs = document.querySelectorAll(`.catalog__item-img`);
+//   tabImgs.forEach((item) => {
+//     const widthSlickContainer = item.querySelector(`.slick-list`).offsetWidth;
+//     item.style.width = `${widthSlickContainer}px`;
+//     item.style.height = `auto`;
+//     console.log(item.style);
+
+//   });          
+// };
+
+// window.addEventListener(`scroll`, rescueSizeImage);
+
+// window.removeEventListener(`scroll`, rescueSizeImage);
+
+// window.addEventListener(`resize`, () => {
+//   const tabImgs = document.querySelectorAll(`.catalog__item-img`);
+//   tabImgs.forEach((it) => it.style.width = `100%`);
+// });
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  const ajaxSend = (formData) => {
+      fetch('/php/mail.php', { // файл-обработчик 
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded', // отправляемые данные 
+          },
+          body: formData
+      })
+          .then(response => console.log('Сообщение отправлено методом fetch'))
+          .catch(error => console.error(error))
+  };
+
+  const forms = document.getElementsByTagName('form');
+  for (let i = 0; i < forms.length; i++) {
+      forms[i].addEventListener('submit', function (e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+          console.log(`send mail`, formData);
+          ajaxSend(formData);
+          this.reset(); // очищаем поля формы 
+      });
+  };
+
+});
