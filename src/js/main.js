@@ -624,8 +624,15 @@ document.addEventListener('DOMContentLoaded', () => {
           },
           body: formData
       })
-          .then(response => console.log('Сообщение отправлено методом fetch'))
-          .catch(error => console.error(error))
+          .then(
+            (response) => {
+              const respond = response.json();
+              console.log('Сообщение отправлено методом fetch');
+              console.log('response', respond);
+              console.log('response status', response.status);
+          })
+          .catch(
+            error => console.error(error))
   };
 
   const forms = document.getElementsByTagName('form');
